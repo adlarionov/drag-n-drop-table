@@ -10,10 +10,12 @@ const router = createBrowserRouter([
   {
     path: "/load",
     element: <LoadFile />,
+    errorElement: <Error />
   },
   {
     path: "/table",
     element: <Table />,
+    errorElement: <Error />
   },
   {
     path: "/*",
