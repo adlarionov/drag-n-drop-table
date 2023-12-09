@@ -1,4 +1,8 @@
-import { RouterProvider, createBrowserRouter } from "react-router-dom";
+import {
+  Navigate,
+  RouterProvider,
+  createBrowserRouter,
+} from "react-router-dom";
 import React from "react";
 import ReactDOM from "react-dom/client";
 import "./index.css";
@@ -8,19 +12,23 @@ import Error from "./pages/Error/index.tsx";
 
 const router = createBrowserRouter([
   {
+    path: "/",
+    element: <Navigate to="/load" />,
+  },
+  {
     path: "/load",
     element: <LoadFile />,
-    errorElement: <Error />
+    errorElement: <Error />,
   },
   {
     path: "/table",
     element: <Table />,
-    errorElement: <Error />
+    errorElement: <Error />,
   },
   {
     path: "/*",
-    element: <Error />
-  }
+    element: <Error />,
+  },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
