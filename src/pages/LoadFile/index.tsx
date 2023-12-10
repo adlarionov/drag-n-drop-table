@@ -1,6 +1,7 @@
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 import UploadModal from "./components/UploadModal";
-import CSVToArray from "../../hooks/parseData";
+import Papa from "papaparse";
+// import CSVToArray from "../../hooks/parseData
 import IUser from "../../types/IUser";
 import useData from "../../hooks/useData";
 import styles from "./LoadFile.module.css";
@@ -19,37 +20,14 @@ const LoadFile = () => {
   };
 
   const readFile = (file: File) => {
-    const reader = new FileReader();
-
-    reader.readAsText(file, "windows-1251");
-
-    if (reader) {
-      reader.onload = () => {
-        if (reader.result) {
-          const result = CSVToArray(reader.result.toString());
-          for (let i = 0; i < result.length; i += 5) {
-            setUserData((prevUser) => {
-              return [
-                ...prevUser,
-                {
-                  name: result[i],
-                  phone: result[i + 1],
-                  email: result[i + 2],
-                  bday: result[i + 3],
-                  address: result[i + 4],
-                },
-              ];
-            });
-          }
-        }
-      };
-
-      reader.onerror = () => {
-        setIsErrorVisible(true);
-        setTimeout(() => setIsErrorVisible(false), 3000);
-        console.error("Error reading file");
-      };
-    }
+    return Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      encoding: "windows-1251",
+      complete: (result: { data: IUser[] }) => {
+        setUserData(result.data);
+      },
+    });
   };
 
   const onChange = (e: ChangeEvent<HTMLInputElement>) => {

@@ -5,7 +5,7 @@ import styles from "./TableBody.module.css";
 const TableBody = ({ userData }: { userData: IUser[] }) => {
   return (
     <tbody style={{ fontSize: "12px" }}>
-      {userData.slice(1).map((user, id) => (
+      {userData.map((user, id) => (
         <tr className={styles.body_tablerow} key={new Date().getTime() + id}>
           <td style={{ padding: "18px 0px 18px 36px", maxWidth: "175px" }}>
             <p
