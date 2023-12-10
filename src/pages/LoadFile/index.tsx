@@ -1,130 +1,118 @@
-import { ChangeEvent, useRef, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import UploadModal from "./components/UploadModal";
+import CSVToArray from "../../hooks/parseData";
 import IUser from "../../types/IUser";
+import useData from "../../hooks/useData";
+import styles from "./LoadFile.module.css";
+import { useNavigate } from "react-router-dom";
 
 const LoadFile = () => {
+  const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
-  const [showModal, setShowModal] = useState<boolean>(false);
+  const [isErrorVisible, setIsErrorVisible] = useState<boolean>(false);
+  const [userData, setUserData] = useState<IUser[]>([]);
+  const [isDragged, setIsDragged] = useState<boolean>(false);
+  const { setData, getData } = useData;
 
   const uploadFile = () => {
     inputRef.current?.click();
   };
 
-  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) {
-      return;
-    }
-    if (!e.target.files[0].name.includes(".csv")) {
-      setShowModal(true);
-      return;
-    }
-
+  const readFile = (file: File) => {
     const reader = new FileReader();
 
-    reader.readAsText(e.target.files[0], "windows-1251");
+    reader.readAsText(file, "windows-1251");
 
     if (reader) {
       reader.onload = () => {
-        function CSVToArray(strData: string): IUser {
-          // Create a regular expression to parse the CSV values.
-          const objPattern = new RegExp(
-            // Delimiters.
-            "(\\" +
-              "," +
-              "|\\r?\\n|\\r|^)" +
-              // Quoted fields.
-              '(?:"([^"]*(?:""[^"]*)*)"|' +
-              // Standard fields.
-              '([^"\\' +
-              "," +
-              "\\r\\n]*))",
-            "gi"
-          );
-
-          // Create an array to hold our data. Give the array
-          // a default empty first row.
-          const arrData: IUser[] = [];
-
-          // Create an array to hold our individual pattern
-          // matching groups.
-          let arrMatches = null;
-
-          // Keep looping over the regular expression matches
-          // until we can no longer find a match.
-          while ((arrMatches = objPattern.exec(strData))) {
-            // Get the delimiter that was found.
-            const strMatchedDelimiter = arrMatches[1];
-
-            // Check to see if the given delimiter has a length
-            // (is not the start of string) and if it matches
-            // field delimiter. If id does not, then we know
-            // that this delimiter is a row delimiter.
-            if (strMatchedDelimiter.length && strMatchedDelimiter != ",") {
-              // Since we have reached a new row of data,
-              // add an empty row to our data array.
-              arrData.push();
-              // continue;
-            }
-
-            let strMatchedValue: IUser;
-
-            // Now that we have our delimiter out of the way,
-            // let's check to see which kind of value we
-            // captured (quoted or unquoted).
-            if (arrMatches[2]) {
-              // We found a quoted value. When we capture
-              // this value, unescape any double quotes.
-              const temp = arrMatches[2].replace(new RegExp('""', "g"), '"');
-              console.log(temp, "here1");
-            } else {
-              // We found a non-quoted value.
-              const temp = arrMatches[3];
-              console.log(temp, "here2");
-            }
-
-            // Now that we have our value string, let's add
-            // it to the data array.
-            // arrData[arrData.length - 1].push(strMatchedValue);
+        if (reader.result) {
+          const result = CSVToArray(reader.result.toString());
+          for (let i = 0; i < result.length; i += 5) {
+            setUserData((prevUser) => {
+              return [
+                ...prevUser,
+                {
+                  name: result[i],
+                  phone: result[i + 1],
+                  email: result[i + 2],
+                  bday: result[i + 3],
+                  address: result[i + 4],
+                },
+              ];
+            });
           }
-
-          // Return the parsed data.
-          // return arrData.slice(0, -1);
-          return;
         }
-        if (reader.result) console.log(CSVToArray(reader.result.toString()));
-
-        // if (reader.result) {
-        //   const readerDataString = reader.result.toString();
-        //   const addressFixes = readerDataString.replace('"', "");
-        //   const withoutRN = addressFixes.replace("\r\n", ",");
-        //   const value = withoutRN.split(",");
-        //   console.log(value);
-        // }
       };
 
       reader.onerror = () => {
-        setShowModal(true);
+        setIsErrorVisible(true);
+        setTimeout(() => setIsErrorVisible(false), 3000);
         console.error("Error reading file");
       };
     }
   };
 
+  const onChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) {
+      setIsErrorVisible(true);
+      setTimeout(() => setIsErrorVisible(false), 3000);
+      return;
+    }
+    if (!e.target.files[0].name.includes(".csv")) {
+      setIsErrorVisible(true);
+      setTimeout(() => setIsErrorVisible(false), 3000);
+      return;
+    }
+
+    readFile(e.target.files[0]);
+  };
+
+  useEffect(() => {
+    const temp = getData();
+    if (temp.length > 0 || userData.length > 0) navigate("/table");
+  }, [getData, navigate, userData]);
+
+  useEffect(() => {
+    if (userData.length > 0) {
+      setData(JSON.stringify(userData));
+    }
+  }, [userData, setData]);
+
   return (
     <div
-      style={{
-        margin: "0 auto",
-        marginTop: "25vh",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: "75px",
-        background: "white",
-        borderRadius: "10px",
-        boxShadow: "2px 4px 9.9px 0px rgba(0, 0, 0, 0.25)",
-        textAlign: "center",
-        maxWidth: "823px",
-        height: "367px",
+      className={styles.load_file_container}
+      style={{ border: isDragged ? "2px #6346b4 dashed" : "none" }}
+      onDragEnter={(event) => {
+        setIsDragged(true);
+        event.preventDefault();
+        console.log("enter", event);
+      }}
+      onDragLeave={(event) => {
+        setIsDragged(false);
+        console.log("leave", event);
+      }}
+      onDragEnd={(event) => {
+        setIsDragged(false);
+        console.log("end", event);
+      }}
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        setIsDragged(false);
+        if (event.dataTransfer.items) {
+          [...event.dataTransfer.items].forEach((item, i) => {
+            if (item.kind === "file") {
+              const file = item.getAsFile();
+              if (file) readFile(file);
+              console.log(`… file[${i}].name = ${file?.name}`);
+            }
+          });
+        } else {
+          [...event.dataTransfer.files].forEach((file, i) => {
+            console.log(`… file[${i}].name = ${file.name}`);
+          });
+        }
+        event.preventDefault();
+        console.log("drop", event);
       }}
     >
       <p>Выберите файл в формате CSV</p>
@@ -137,7 +125,7 @@ const LoadFile = () => {
         style={{ display: "none" }}
       />
 
-      {showModal && <UploadModal />}
+      {isErrorVisible && <UploadModal />}
     </div>
   );
 };

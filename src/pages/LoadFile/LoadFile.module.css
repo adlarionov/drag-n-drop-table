@@ -1,0 +1,15 @@
+.load_file_container {
+  margin: 0 auto;
+  margin-top: 25vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 75px;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 2px 4px 9.9px 0px rgba(0, 0, 0, 0.25);
+  text-align: center;
+  max-width: 823px;
+  height: 367px;
+}

@@ -1,7 +1,9 @@
-const getData = () => {
+import IUser from "../types/IUser";
+
+const getData = (): IUser[] => {
   const data = localStorage.getItem("data");
-  if (data) return JSON.parse(data);
-  else return;
+  if (data) return JSON.parse(JSON.parse(data));
+  else return [];
 };
 const setData = (data: string) => {
   localStorage.setItem("data", JSON.stringify(data));

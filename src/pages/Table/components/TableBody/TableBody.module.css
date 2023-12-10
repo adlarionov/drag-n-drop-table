@@ -1,0 +1,18 @@
+.body_tablerow {
+  border-bottom: 1px solid #c0c0c0;
+}
+
+.body_tablerow:hover {
+  background: rgba(99, 70, 180, 0.25);
+  transition: background ease-in-out 0.1s;
+}
+
+.body_tablecell {
+  padding: 0px 0px 0px 24px;
+}
+
+.text_ellipsis {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
